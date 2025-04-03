@@ -32,7 +32,7 @@ public class App
             server.stopServer();
         }));
 
-        server.start();
+        server.run();
         logger.info("Node is running. Press CTRL + C to exit.");
 
     }

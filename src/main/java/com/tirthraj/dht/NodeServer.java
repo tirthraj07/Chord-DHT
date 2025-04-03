@@ -6,7 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Logger;
 
-public class NodeServer extends Thread {
+public class NodeServer {
     private static final Logger logger = Logger.getLogger(NodeServer.class.getName());
     private final Node node;
 
@@ -20,7 +20,7 @@ public class NodeServer extends Thread {
         this.inetSocketAddress = new InetSocketAddress(node.getIp(), node.getPort());
     }
 
-    @Override
+    //@Override
     public void run(){
         try {
             serverSocket = new ServerSocket();
@@ -30,7 +30,10 @@ public class NodeServer extends Thread {
 
             while (running) {
                 Socket clientSocket = serverSocket.accept();
-                new NodeHandler(clientSocket, node).start();
+                if(clientSocket.isConnected()) {
+                    logger.info("clientSocket connected " + clientSocket.getLocalAddress() );
+                    new Thread(new NodeHandler(clientSocket, node)).start();
+                }
             }
         } catch (IOException e) {
             logger.severe("Fatal error in node server: " + e.getMessage());
