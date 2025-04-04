@@ -2,15 +2,13 @@ package com.tirthraj.dht;
 
 import com.tirthraj.dht.utils.HashUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.Socket;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-public class Node {
+public class Node implements Serializable {
     private static final Logger logger = Logger.getLogger(Node.class.getName());
 
     private final String ipAddress;
@@ -18,6 +16,8 @@ public class Node {
     private final BigInteger nodeID;
     private Node predecessor;
     private Node successor;
+    private final ConcurrentHashMap<String, String> keyValueStore;
+
 
     public Node(String ipAddress, int port){
         this.ipAddress = ipAddress;
@@ -25,6 +25,7 @@ public class Node {
         this.nodeID = HashUtils.hashNode(ipAddress, port);
         this.predecessor = this;
         this.successor = this;
+        this.keyValueStore = new ConcurrentHashMap<>();
         logger.info("Node Created : " + this);
     }
 
@@ -136,6 +137,57 @@ public class Node {
 
     }
 
+    public boolean SEND_PUT_REQUEST(String destinationIP, int destinationPort, String key, String value) {
+        try(Socket socket = new Socket(destinationIP, destinationPort);
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        ){
+            String command = "PUT " + key + " " + value;
+            writer.println(command);
+            String response = reader.readLine();
+            if("OK".equalsIgnoreCase(response.trim())){
+                logger.info("Received PUT response from " + destinationIP + ":" + destinationPort);
+                return true;
+            }
+            else{
+                logger.info("Error for PUT response from " + destinationIP + ":" + destinationPort);
+                return false;
+            }
+
+        }catch(IOException e){
+            logger.severe("Failed to send PUT Command to " + destinationIP +":"+ destinationPort);
+            return false;
+        }
+
+    }
+
+    public String SEND_GET_REQUEST(String destinationIP, int destinationPort, String key) {
+        try(Socket socket = new Socket(destinationIP, destinationPort);
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        ){
+            String command = "GET " + key;
+            writer.println(command);
+            String response = reader.readLine();
+            logger.info("Response from GET: " + response);
+            String[] responseArgs = response.trim().split(" ");
+            String responseStatus = responseArgs[0].trim();
+            if("OK".equalsIgnoreCase(responseStatus)){
+                logger.info("Received GET response from " + destinationIP + ":" + destinationPort);
+                return responseArgs[1];
+            }
+            else{
+                logger.info("Error for GET response from " + destinationIP + ":" + destinationPort);
+                return null;
+            }
+
+        }catch(IOException e){
+            logger.severe("Failed to send GET Command to " + destinationIP +":"+ destinationPort);
+            return null;
+        }
+
+    }
+
     public boolean SEND_JOIN_REQUEST_TO_SUCCESSOR(String newNodeIPAddress, int newNodePort) {
         try(Socket socket = new Socket(getSuccessor().getIp(), getSuccessor().getPort());
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
@@ -219,6 +271,32 @@ public class Node {
         printRing();
     }
 
+    public Node getResponsibleNode(String key) {
+        BigInteger hashedKey = HashUtils.hashKey(key);
+        // If there is only one node in the ring, return this node.
+        if (this.successor == this) {
+            return this;
+        }
+
+        Node curr = this;
+        while (true) {
+            // Normal case: no wrap-around
+            if (curr.nodeID.compareTo(curr.successor.nodeID) < 0) {
+                if (hashedKey.compareTo(curr.nodeID) > 0 &&
+                        hashedKey.compareTo(curr.successor.nodeID) <= 0) {
+                    return curr.successor;
+                }
+            } else { // Wrap-around case: interval crosses the zero point.
+                if (hashedKey.compareTo(curr.nodeID) > 0 ||
+                        hashedKey.compareTo(curr.successor.nodeID) <= 0) {
+                    return curr.successor;
+                }
+            }
+            curr = curr.successor;
+        }
+    }
+
+
     public synchronized String getAllNodesAsString() {
         StringBuilder sb = new StringBuilder();
         Node curr = this;
@@ -250,6 +328,12 @@ public class Node {
         this.successor = node;
     }
 
+    public void putValue(String key, String value){
+        logger.info(this.nodeID + ": PUT Operation: " + key + ":" + value + " HashedKey: " + HashUtils.hashKey(key));
+        keyValueStore.put(key, value);
+    }
+
+
     // Getters
     public BigInteger getNodeId() {
         return nodeID;
@@ -269,6 +353,12 @@ public class Node {
 
     public Node getSuccessor(){
         return this.successor;
+    }
+
+    public String getValue(String key){
+        String value = keyValueStore.getOrDefault(key, null);
+        logger.info(this.nodeID + ": GET Operation: " + key + ":" + value);
+        return value;
     }
 
 
