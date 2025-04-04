@@ -15,6 +15,8 @@ public class CommandRegistry {
         commands.put("GET_PREDECESSOR", new GetPredecessorCommand());
         commands.put("NOTIFY", new NotifyCommand());
         commands.put("HEALTH_CHECK", new HealthCheckCommand());
+        commands.put("SET_SUCCESSOR", new SetSuccessorCommand());
+        commands.put("SET_PREDECESSOR", new SetPredecessorCommand());
     }
 
     public CommandProcessor getCommand(String command) {
