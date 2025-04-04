@@ -28,10 +28,24 @@ public class SetSuccessorCommand implements CommandProcessor {
             return;
         }
 
+        // IF Already present, then return
+        if(node.getSuccessor().getIp().equalsIgnoreCase(successorIP) && node.getSuccessor().getPort() == successorPort){
+            writer.println("OK");
+            return;
+        }
+
         Node successorNode = new Node(successorIP, successorPort);
         logger.info("Creating successor node : " + successorNode);
+        Node previousSuccessor = node.getSuccessor();
+
+        successorNode.setSuccessor(previousSuccessor);
+        successorNode.setPredecessor(node);
 
         node.setSuccessor(successorNode);
+        previousSuccessor.setPredecessor(successorNode);
+
+        node.SEND_SET_PREDECESSOR_REQUEST(previousSuccessor.getIp(), previousSuccessor.getPort(), successorNode.getIp(), successorNode.getPort());
+
         writer.println("OK");
     }
 }

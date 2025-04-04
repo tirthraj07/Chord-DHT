@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.logging.Logger;
 
-public class NodeHandler implements Runnable{
+public class NodeHandler implements Runnable {
     private static final Logger logger = Logger.getLogger(NodeHandler.class.getName());
     private final Socket clientSocket;
     private final Node node;

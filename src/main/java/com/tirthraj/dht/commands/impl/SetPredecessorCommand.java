@@ -27,9 +27,22 @@ public class SetPredecessorCommand implements CommandProcessor {
             return;
         }
 
+        if(node.getPredecessor().getIp().equalsIgnoreCase(predecessorIP) && node.getPredecessor().getPort() == predecessorPort){
+            writer.println("OK");
+            return;
+        }
+
         Node predecessorNode = new Node(predecessorIP, predecessorPort);
-        logger.info("Creating successor node : " + predecessorNode);
+        logger.info("Creating predecessor node : " + predecessorNode);
+        Node previousPredecessor = node.getPredecessor();
+
+        predecessorNode.setSuccessor(node);
+        predecessorNode.setPredecessor(previousPredecessor);
         node.setPredecessor(predecessorNode);
+        predecessorNode.setSuccessor(predecessorNode);
+
+        node.SEND_SET_SUCCESSOR_REQUEST(previousPredecessor.getIp(), previousPredecessor.getPort(), predecessorNode.getIp(), predecessorNode.getPort());
+
         writer.println("OK");
     }
 }

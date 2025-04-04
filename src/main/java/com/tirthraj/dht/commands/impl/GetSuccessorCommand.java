@@ -5,11 +5,11 @@ import com.tirthraj.dht.commands.CommandProcessor;
 
 import java.io.PrintWriter;
 
-public class FindSuccessorCommand implements CommandProcessor {
+public class GetSuccessorCommand implements CommandProcessor {
 
     @Override
     public void process(String[] args, Node node, PrintWriter writer) {
-        // TODO: Implement Command
+        writer.println(node.getSuccessor());
     }
 }
 

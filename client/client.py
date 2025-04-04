@@ -1,5 +1,6 @@
 import socket
 import sys
+import os
 
 if len(sys.argv) != 3:
     print("Usage: python client.py <server_ip> <port>")
@@ -20,6 +21,10 @@ try:
         message = input("> ")  # Interactive input
         if not message:
             continue  # Ignore empty input
+
+        if message.upper() == "CLS":
+            os.system("cls" if os.name == "nt" else "clear")  # Cross-platform solution
+            continue
 
         client_socket.sendall((message + "\n").encode())   # Send data to server
         response = client_socket.recv(1024).decode()  # Receive response

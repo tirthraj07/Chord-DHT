@@ -5,14 +5,9 @@ import com.tirthraj.dht.commands.CommandProcessor;
 
 import java.io.PrintWriter;
 
-public class GetPredecessorCommand implements CommandProcessor {
-
+public class GetRingCommand implements CommandProcessor {
     @Override
     public void process(String[] args, Node node, PrintWriter writer) {
-        writer.println(node.getPredecessor());
-        // This below mistake cost be 2 hours :)
-        //        writer.println(node.getSuccessor());
+        writer.println(node.getAllNodesAsString());
     }
 }
-
-

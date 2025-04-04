@@ -12,11 +12,13 @@ public class JoinCommand implements CommandProcessor {
     @Override
     public void process(String[] args, Node node, PrintWriter writer) {
         logger.info("JOIN Request Received");
+
         if(args.length != 3){
             logger.severe("Error: Invalid command usage. Usage: JOIN <new-node-ip> <new-node-port>");
             writer.println("ERROR: Invalid syntax: Usage: JOIN <new-node-ip> <new-node-port>");
             return;
         }
+
         String newNodeIPAddress = args[1];
         int newNodePort;
         try{
@@ -33,19 +35,21 @@ public class JoinCommand implements CommandProcessor {
             return;
         }
 
-        // TODO: Send HEALTH CHECK to newNode before adding
+        // HEALTH CHECK before adding as successor
+//        boolean isNewNodeAlive = node.SEND_HEALTH_CHECK_REQUEST(newNodeIPAddress, newNodePort);
+//        if(!isNewNodeAlive){
+//            logger.severe("Error: Couldn't reach the node");
+//            writer.println("Error: Couldn't reach Node : " + newNodeIPAddress + ":" + newNodePort);
+//            return;
+//        }
 
         Node newNode = new Node(newNodeIPAddress, newNodePort);
-
-        if(node.getSuccessor() == node){
-            newNode.setSuccessor(node);
-            newNode.setPredecessor(node);
-            node.setSuccessor(newNode);
-            node.setPredecessor(newNode);
-            node.SEND_SET_PREDECESSOR_REQUEST(newNode.getIp(), newNode.getPort(), node.getIp(), node.getPort());
-            node.SEND_SET_SUCCESSOR_REQUEST(newNode.getIp(), newNode.getPort(), node.getIp(), node.getPort());
+        boolean viewSent = node.SEND_CURRENT_VIEW(newNode.getIp(), newNode.getPort());
+        if(!viewSent){
+            writer.println("Error: Failed to send view to " + newNode);
+            return;
         }
-
-
+        logger.info("Node added successfully");
+        writer.println("OK");
     }
 }
