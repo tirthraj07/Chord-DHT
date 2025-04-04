@@ -36,12 +36,12 @@ public class JoinCommand implements CommandProcessor {
         }
 
         // HEALTH CHECK before adding as successor
-//        boolean isNewNodeAlive = node.SEND_HEALTH_CHECK_REQUEST(newNodeIPAddress, newNodePort);
-//        if(!isNewNodeAlive){
-//            logger.severe("Error: Couldn't reach the node");
-//            writer.println("Error: Couldn't reach Node : " + newNodeIPAddress + ":" + newNodePort);
-//            return;
-//        }
+        boolean isNewNodeAlive = node.SEND_HEALTH_CHECK_REQUEST(newNodeIPAddress, newNodePort);
+        if(!isNewNodeAlive){
+            logger.severe("Error: Couldn't reach the node");
+            writer.println("Error: Couldn't reach Node : " + newNodeIPAddress + ":" + newNodePort);
+            return;
+        }
 
         Node newNode = new Node(newNodeIPAddress, newNodePort);
         boolean viewSent = node.SEND_CURRENT_VIEW(newNode.getIp(), newNode.getPort());

@@ -21,6 +21,8 @@ public class CommandRegistry {
         commands.put("CURRENT_VIEW", new CurrentViewCommand());
         commands.put("ADD_NODE", new AddNodeCommand());
         commands.put("GET_RING", new GetRingCommand());
+        commands.put("GET", new GetValueCommand());
+        commands.put("PUT", new PutValueCommand());
     }
 
     public CommandProcessor getCommand(String command) {
